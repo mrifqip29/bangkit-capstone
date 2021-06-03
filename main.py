@@ -1,7 +1,7 @@
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import Sequential, load_model
-from flask import Flask, request
+from flask import Flask, request, flash, redirect
 from PIL import Image
 import flask
 import numpy as np
@@ -53,6 +53,8 @@ def predict():
             image = flask.request.files["image"].read()
             image = Image.open(io.BytesIO(image))
 
+            data["filename"] = flask.request.files["image"].filename
+
             # preprocess the image and prepare it for classification
             resizedImage = prepare_image(image, target_size=(150, 150))
 
@@ -68,20 +70,28 @@ def predict():
     return flask.jsonify(data)
 
 
-@app.route("/predict_test", methods=["POST"])
-def predict():
+@app.route("/coba", methods=["POST"])
+def coba():
     data = {"success": False}
 
     if flask.request.method == "POST":
-        if flask.request.files.get("image"):
-            # indicate that the request was a success
-            data["success"] = True
+        # check if the post has "image" file part
+        if 'image' not in request.files:
+            data['message'] = "No image part"
+            return flask.jsonify(data), 404
 
-            data["image"] = image
+        file = request.files['image']
 
+        if file.filename == '':
+            data['message'] = "No selected image"
+            return flask.jsonify(data), 404
+
+        if file:
             # read the image in PIL format
-            image = flask.request.files["image"].read()
+            image = file.read()
             image = Image.open(io.BytesIO(image))
+
+            data["filename"] = file.filename
 
             # preprocess the image and prepare it for classification
             resizedImage = prepare_image(image, target_size=(150, 150))
@@ -91,6 +101,9 @@ def predict():
             x = np.where(classes[0] == 1)[0][0]
 
             data["prediction"] = class_names[x]
+
+            # indicate that the request was a success
+            data["success"] = True
 
     print("data: {}".format(data))
     print("data_type: {}".format(type(data)))
