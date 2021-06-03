@@ -70,6 +70,38 @@ def predict():
     return flask.jsonify(data)
 
 
+@app.route("/json", methods=["POST"])
+def json():
+    data = {"success": False}
+
+    if flask.request.method == "POST":
+        data["input"] = request.get_json()
+
+        # indicate that the request was a success
+        data["success"] = True
+
+    print("data: {}".format(data))
+    print("data_type: {}".format(type(data)))
+
+    return flask.jsonify(data)
+
+
+@app.route("/text", methods=["POST"])
+def text():
+    data = {"success": False}
+
+    if flask.request.method == "POST":
+        data["input"] = request.form.get('image')
+
+        # indicate that the request was a success
+        data["success"] = True
+
+    print("data: {}".format(data))
+    print("data_type: {}".format(type(data)))
+
+    return flask.jsonify(data)
+
+
 @app.route("/coba", methods=["POST"])
 def coba():
     data = {"success": False}
@@ -101,6 +133,7 @@ def coba():
             x = np.where(classes[0] == 1)[0][0]
 
             data["prediction"] = class_names[x]
+            data["x_value"] = str(classes)
 
             # indicate that the request was a success
             data["success"] = True
